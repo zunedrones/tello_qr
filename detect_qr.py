@@ -1,4 +1,3 @@
-import os
 import cv2
 from pyzbar.pyzbar import decode
 
@@ -11,10 +10,10 @@ armazena o texto em uma lista e retorna o frame
 """
 def process(frame):
     decoded_objects = decode(frame)
-    global x, y, w, h, data
+    global x, y, w, h, data, qr_text
+    qr_text = ''
     for obj in decoded_objects:
         (x, y, w, h) = obj.rect
-        #x, y, w, h = int(x), int(y), int(w), int(h)
         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 255), 2)
         qr_text = obj.data.decode('utf-8')
         cv2.circle(frame, (x + w // 2, y + h // 2), 5, (0, 0, 255), cv2.FILLED)
@@ -23,6 +22,6 @@ def process(frame):
         if qr_text not in data:
             data.append(qr_text)
     #print(data)
-    return [frame, x, y, x+w, y+h, len(decoded_objects)]
+    return [frame, x, y, x+w, y+h, len(decoded_objects), qr_text]
 
 #cv2.namedWindow('QR Code', cv2.WINDOW_AUTOSIZE)

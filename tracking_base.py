@@ -1,8 +1,9 @@
 import numpy as np
+import cv2, time
 from detect_qr import process
 
-Width = 544
-Height = 306
+Width = 800
+Height = 600
 #coordenadas do centro
 CenterX = Width // 2
 CenterY = Height // 2
@@ -18,7 +19,8 @@ Kd = 0.2
 
 width_detect = 0
 area_land = 0
-
+text = ''
+response = ''
 def tracking(tello, frame):
     '''
     Centraliza o objeto detectado no centro da tela. Recebe como argumentos: tello, objeto tello
@@ -27,8 +29,8 @@ def tracking(tello, frame):
     apenas efetua o tracking do objeto sem pousar, e False detecta e pousa.
     A função retorna False se a função de pousar for chamada, e True se ainda não.
     '''
-    global prevErrorX, prevErrorY, CenterX, CenterY, Kp, Kd, width_detect, area_land
-    _, x1, y1, x2, y2, detections = process(frame)
+    global prevErrorX, prevErrorY, CenterX, CenterY, Kp, Kd, text, width_detect, area_land
+    _, x1, y1, x2, y2, detections, text = process(frame)
     speedFB = 0
     cxDetect = (x2 + x1) // 2
     cyDetect = (y2 + y1) // 2
@@ -36,15 +38,17 @@ def tracking(tello, frame):
     #PID - Speed Control
     width_detect = x2 - x1
     area = (x2 - x1) * (y2 - y1)
-    print(f"Area: {area}")
-    print(f"DETECTIONS: {detections}")
+    #print(f"Area: {area}")
+    #print(f"DETECTIONS: {detections}")
     #se o centro da detecção encontrar-se na esquerda, o erro na horizontal será negativo
     #se o objeto estiver na direita, o erro será positivo
     if (detections > 0):
         errorX = cxDetect - CenterX
-        print(errorX)
+        #print(errorX)
         errorY = CenterY - cyDetect
-        print(errorY)
+        #print(errorY)
+        cv2.circle(frame, (CenterX, CenterY), 5, (0, 255, 255), -1)
+        cv2.line(frame, (CenterX, CenterY), (cxDetect, cyDetect), (255, 255, 0), 2)
         if area < 20000: 
             speedFB = 25
         elif area > 80000: # menor
@@ -63,10 +67,24 @@ def tracking(tello, frame):
     speedYaw = int(np.clip(speedYaw,-100,100))
     speedUD = int(np.clip(speedUD,-100,100))
     
-    print(f"FB: {speedFB}, UD: {speedUD}, YAW: {speedYaw}")
-    if(detections != 0):
+    #print(f"FB: {speedFB}, UD: {speedUD}, YAW: {speedYaw}")
+    if(detections == 1 and text == 'dados de leitura'):
         tello.send_rc_control(0, speedFB, speedUD, speedYaw)
-        #print(f'RC CONTROL: {speedFB}, {speedUD}, {speedYaw}')
+        print(f'FB: {speedFB}, UD: {speedUD}, Yaw: {speedYaw}')
+    if detections == 1 and text == 'land':
+        tello.send_cmd('land')
+        time.sleep(3)
+        print('LAND')
+    if detections == 1 and text == 'takeoff':
+        tello.send_cmd('takeoff')
+        time.sleep(3)
+        print('TAKEOFF')
+    if detections == 1 and text == 'up':
+        response = tello.send_cmd_return('up 20')
+        print('UP', response)
+    if detections == 1 and text == 'down':
+        tello.send_cmd('down 20')
+        print('DOWN')
     else:
         tello.send_rc_control(0, 0, 0, 0)
     #o erro atual vira o erro anterior
