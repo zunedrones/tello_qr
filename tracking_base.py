@@ -1,5 +1,5 @@
 import numpy as np
-import cv2, time
+import cv2
 from detect_qr import process
 
 Width = 800
@@ -21,13 +21,15 @@ width_detect = 0
 area_land = 0
 text = ''
 response = ''
+old_move = ''
 def tracking(tello, frame):
     '''
-    Centraliza o objeto detectado no centro da tela. Recebe como argumentos: tello, objeto tello
-    que possui os métodos da biblioteca djitellopy, values_detect, um vetor que possui as coordenadas
-    da detecção e o número de detecções [x1, y1, x2, y2, detections], only_tracking, se True
-    apenas efetua o tracking do objeto sem pousar, e False detecta e pousa.
-    A função retorna False se a função de pousar for chamada, e True se ainda não.
+    Processa o frame para detectar QR codes e executa comandos no drone Tello com base no texto detectado.
+    Args:
+        tello: Objeto representando o drone Tello, que possui métodos para enviar comandos e obter estado.
+        frame: Frame de vídeo a ser processado para detecção de QR codes.
+    Returns:
+        frame: Frame processado após a detecção e execução dos comandos.
     '''
     global prevErrorX, prevErrorY, CenterX, CenterY, Kp, Kd, text, width_detect, area_land
     _, x1, y1, x2, y2, detections, text = process(frame)
@@ -47,6 +49,9 @@ def tracking(tello, frame):
         #print(errorX)
         errorY = CenterY - cyDetect
         #print(errorY)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 2)
+        cv2.circle(frame, (cxDetect, cyDetect), 5, (0, 0, 255), -1)
+        cv2.putText(frame, text, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
         cv2.circle(frame, (CenterX, CenterY), 5, (0, 255, 255), -1)
         cv2.line(frame, (CenterX, CenterY), (cxDetect, cyDetect), (255, 255, 0), 2)
         if area < 20000: 
@@ -71,25 +76,11 @@ def tracking(tello, frame):
     if(detections == 1 and text == 'dados de leitura'):
         tello.send_rc_control(0, speedFB, speedUD, speedYaw)
         print(f'FB: {speedFB}, UD: {speedUD}, Yaw: {speedYaw}')
-    if detections == 1 and text == 'land':
-        tello.send_cmd('land')
-        time.sleep(3)
-        print('LAND')
-    if detections == 1 and text == 'takeoff':
-        tello.send_cmd('takeoff')
-        time.sleep(3)
-        print('TAKEOFF')
-    if detections == 1 and text == 'up':
-        response = tello.send_cmd_return('up 20')
-        print('UP', response)
-    if detections == 1 and text == 'down':
-        tello.send_cmd('down 20')
-        print('DOWN')
-    else:
-        tello.send_rc_control(0, 0, 0, 0)
+    
     #o erro atual vira o erro anterior
     prevErrorX = errorX
     prevErrorY = errorY
+    return frame
 
 
 
