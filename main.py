@@ -1,8 +1,8 @@
 from tello_zune import TelloZune
 import cv2
 import tello_control
-cap = cv2.VideoCapture(0)
 
+#cap = cv2.VideoCapture(0)
 tello = TelloZune()
 tello.start_tello()
 

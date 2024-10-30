@@ -1,4 +1,3 @@
-import cv2
 from tracking_base import tracking
 from detect_qr import process
 import time
@@ -7,36 +6,30 @@ def moves(tello, frame):
     '''
     Processa o frame para detectar QR codes e executa comandos no drone Tello com base no texto detectado.
 Args:
-    tello: Objeto representando o drone Tello, que possui métodos para enviar comandos e obter estado.
+    tello: Objeto da classe TelloZune, que possui métodos para enviar comandos e obter estado.
     frame: Frame de vídeo a ser processado para detecção de QR codes.
 Returns:
     frame: Frame processado após a detecção e execução dos comandos.
     '''
     old_move = ''
+    pace = ' 20'
     frame , _, _, _, _, detections, text = process(frame)
-    if(text == 'dados de leitura'):
+    if(text == 'dados de leitura'): # lembrar de imprimir um qrcode: 'follow'
         frame = tracking(tello, frame)
     if detections == 1 and text == 'land':
         while float(tello.get_state_field('h')) >= 13:
             tello.send_rc_control(0, 0, -70, 0)
-        tello.send_cmd('land')
+        tello.send_cmd(text)
         time.sleep(1)
-        print('LAND')
     elif detections == 1 and text == 'takeoff' and old_move != 'takeoff':
-        response = tello.send_cmd_return('takeoff')
-        old_move = 'takeoff'
+        response = tello.send_cmd_return(text)
         time.sleep(1)
-        print('TAKEOFF')
-    elif detections == 1 and text == 'up' and old_move != 'up':
-        response = tello.send_cmd_return('up 20')
-        old_move = 'up'
-        print('UP', response)
-    elif detections == 1 and text == 'down' and old_move != 'down':
-        tello.send_cmd_return('down 20')
-        old_move = 'down'
-        print('DOWN')
+    elif detections == 1 and (text == 'up' or text == 'down') and old_move != text:
+        response = tello.send_cmd_return(text + pace)
+        print(text + pace, response)
     elif old_move != 'land':
         tello.send_rc_control(0, 0, 0, 0)
-    
+    print(text)
+    old_move = text
     return frame
 
