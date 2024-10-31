@@ -20,16 +20,19 @@ Returns:
         while float(tello.get_state_field('h')) >= 13:
             tello.send_rc_control(0, 0, -70, 0)
         tello.send_cmd(text)
+        print(text)
         time.sleep(1)
     elif detections == 1 and text == 'takeoff' and old_move != 'takeoff':
         response = tello.send_cmd_return(text)
+        print(text, response)
         time.sleep(1)
     elif detections == 1 and (text == 'up' or text == 'down') and old_move != text:
         response = tello.send_cmd_return(text + pace)
-        print(text + pace, response)
+        if response == 'ok':
+            print(text + pace, response)
     elif old_move != 'land':
         tello.send_rc_control(0, 0, 0, 0)
-    print(text)
+    #print(f'texto lido: {text}')
     old_move = text
     return frame
 
