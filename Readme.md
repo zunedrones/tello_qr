@@ -25,8 +25,6 @@ Siga as instruções abaixo para instalar e configurar o projeto:
 # Clone o repositório
 git clone https://github.com/zunedrones/tello_qr
 ```
-# Navegue até o diretório do projeto
-cd tello_qr
 
 ```bash
 # Instalar dependências
