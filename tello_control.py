@@ -32,12 +32,11 @@ Returns:
             print(text + pace, response)
     else: # rotina para procurar QR code
         if detections == 0 and old_move != 'land':
-            time.sleep(5) # aguarda detecção de QR code
             if detections == 0:
-                response = tello.send_cmd_return('cw 15')
+                response = tello.send_cmd_return('cw 10')
                 if response == 'ok':
-                    print('cw 15', response)
-    tello.send_rc_control(0, 0, 0, 0) # testar
+                    print('cw 10', response)
+        tello.send_rc_control(0, 0, 0, 0) # testar
 
     #print(f'texto lido: {text}')
     old_move = text
