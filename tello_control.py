@@ -13,26 +13,34 @@ Returns:
     '''
     old_move = ''
     pace = ' 20'
-    frame , _, _, _, _, detections, text = process(frame)
-    if(text == 'dados de leitura'): # lembrar de imprimir um qrcode: 'follow'
+    frame, _, _, _, _, detections, text = process(frame)
+    if text == 'dados de leitura': # lembrar de imprimir um qrcode: 'follow'
         frame = tracking(tello, frame)
     if detections == 1 and text == 'land':
         while float(tello.get_state_field('h')) >= 13:
             tello.send_rc_control(0, 0, -70, 0)
         tello.send_cmd(text)
         print(text)
-        time.sleep(1)
+        #time.sleep(1)
     elif detections == 1 and text == 'takeoff' and old_move != 'takeoff':
         response = tello.send_cmd_return(text)
         print(text, response)
-        time.sleep(1)
-    elif detections == 1 and (text == 'up' or text == 'down') and old_move != text:
+        #time.sleep(1)
+    elif detections == 1 and (text == 'up' or text == 'down'):
         response = tello.send_cmd_return(text + pace)
         if response == 'ok':
             print(text + pace, response)
-    elif old_move != 'land':
-        tello.send_rc_control(0, 0, 0, 0)
+    else: # rotina para procurar QR code
+        if detections == 0 and old_move != 'land':
+            time.sleep(5) # aguarda detecção de QR code
+            if detections == 0:
+                response = tello.send_cmd_return('cw 15')
+                if response == 'ok':
+                    print('cw 15', response)
+    tello.send_rc_control(0, 0, 0, 0) # testar
+
     #print(f'texto lido: {text}')
     old_move = text
+    response = ''
     return frame
 
