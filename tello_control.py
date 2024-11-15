@@ -13,6 +13,7 @@ Returns:
     '''
     old_move = ''
     pace = ' 20'
+    pace_moves = ['up', 'down', 'left', 'right', 'forward', 'back']
     frame, _, _, _, _, detections, text = process(frame)
     if text == 'dados de leitura': # lembrar de imprimir um qrcode: 'follow'
         frame = tracking(tello, frame)
@@ -26,18 +27,17 @@ Returns:
         response = tello.send_cmd_return(text)
         print(text, response)
         #time.sleep(1)
-    elif detections == 1 and (text == 'up' or text == 'down'):
-        response = tello.send_cmd_return(text + pace)
+    elif detections == 1 and text in pace_moves: # movimentos com passo
+        response = tello.send_cmd_return(f"{text}' '{pace}")
         if response == 'ok':
-            print(text + pace, response)
+            print(f"{text}' '{pace}", response)
     else: # rotina para procurar QR code
         if detections == 0 and old_move != 'land':
-            if detections == 0:
-                response = tello.send_cmd_return('cw 10')
-                if response == 'ok':
-                    print('cw 10', response)
+            response = tello.send_cmd_return('cw 20')
+            if response == 'ok':
+                print('cw 20', response)
         tello.send_rc_control(0, 0, 0, 0) # testar
-
+        time.sleep(0.1)
     #print(f'texto lido: {text}')
     old_move = text
     response = ''
