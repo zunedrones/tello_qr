@@ -6,6 +6,7 @@ import tello_control
 tello = TelloZune()
 tello.start_tello()
 
+
 while True:
     #ret, frame = cap.read()
     frame = tello.get_frame()
