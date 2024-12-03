@@ -20,4 +20,3 @@ while True:
 #cap.release()
 tello.end_tello()
 cv2.destroyAllWindows()
-
